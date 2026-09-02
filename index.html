@@ -203,6 +203,24 @@
       color: var(--gray-color);
     }
 
+    /* 削除（✕）ボタンの見た目 */
+    .delete-btn {
+      background: none;
+      border: none;
+      color: var(--gray-color);
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 0 2px;
+      line-height: 1;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .delete-btn:hover {
+      opacity: 1;
+      color: #e53e3e; /* ホバー時に赤色に変化 */
+    }
+
     /* 入力フォーム */
     .add-task-input {
       width: 100%;
@@ -348,7 +366,12 @@
         input.placeholder = '+task';
         input.addEventListener('keypress', (e) => {
           if (e.key === 'Enter' && input.value.trim() !== '') {
-            if (tasks[dateKey]) {
+            
+            if (!tasks[dateKey]) tasks[dateKey] = [];
+            tasks[dateKey].push({ text: input.value.trim(), completed: false });
+            input.value = '';
+            renderCalendar();
+          
           tasks[dateKey].forEach((task, index) => {
             const item = document.createElement('div');
             item.className = 'task-item';
