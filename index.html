@@ -63,9 +63,10 @@
       line-height: 1;
     }
 
+    /* 月表示のバッジ（背景色を #191919 に指定） */
     .month-badge {
       display: inline-block;
-      background-color: var(--accent-blue);
+      background-color: #191919;
       color: var(--text-white);
       padding: 4px 12px;
       font-family: var(--font-text);
@@ -225,7 +226,7 @@
     .add-task-input {
       width: 100%;
       border: none;
-      border-bottom: 1px solid var(--gray-color); /* グレーの区切り線 */
+      border-bottom: 1px solid var(--gray-color);
       outline: none;
       font-size: 0.85rem;
       padding: 4px 0;
@@ -248,7 +249,7 @@
       <button class="nav-btn" id="prev-btn">◀</button>
       <button class="nav-btn" id="next-btn">▶</button>
       <div>
-        <span class="month-badge" id="month-badge">October</span>
+        <span class="month-badge" id="month-badge">September</span>
         <span class="year-text" id="range-text">2026</span>
       </div>
     </div>
@@ -264,14 +265,21 @@
     let currentDate = new Date();
     let currentView = 'week';
     
-    // LocalStorageからタスクデータを読み込み（無ければ空）
-    let tasks = JSON.parse(localStorage.getItem('notion_calendar_tasks')) || {};
+    // ブラウザの保存領域（LocalStorage）からデータを読み込み
+    let tasks = {};
+    try {
+      const savedTasks = localStorage.getItem('notion_calendar_tasks');
+      if (savedTasks) {
+        tasks = JSON.parse(savedTasks);
+      }
+    } catch (e) {
+      console.error('LocalStorage load error:', e);
+    }
 
     const monthNamesEn = [
       "January", "February", "March", "April", "May", "June", 
       "July", "August", "September", "October", "November", "December"
     ];
-    // 英語の頭文字
     const daysEn = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
     const gridEl = document.getElementById('calendar-grid');
@@ -282,9 +290,13 @@
     const weekViewBtn = document.getElementById('week-view-btn');
     const monthViewBtn = document.getElementById('month-view-btn');
 
-    // LocalStorageへ保存
+    // LocalStorageへデータを保存する関数
     function saveTasks() {
-      localStorage.setItem('notion_calendar_tasks', JSON.stringify(tasks));
+      try {
+        localStorage.setItem('notion_calendar_tasks', JSON.stringify(tasks));
+      } catch (e) {
+        console.error('LocalStorage save error:', e);
+      }
     }
 
     function formatDateKey(date) {
@@ -369,7 +381,7 @@
             checkbox.checked = task.completed;
             checkbox.addEventListener('change', () => {
               task.completed = checkbox.checked;
-              saveTasks(); // 変更を保存
+              saveTasks(); // 状態変更時に自動保存
             });
 
             const text = document.createElement('span');
@@ -385,7 +397,7 @@
             deleteBtn.textContent = '✕';
             deleteBtn.addEventListener('click', () => {
               tasks[dateKey].splice(index, 1);
-              saveTasks(); // 変更を保存
+              saveTasks(); // 削除時に自動保存
               renderCalendar();
             });
 
@@ -410,7 +422,7 @@
               text: input.value.trim(),
               completed: false
             });
-            saveTasks(); // 保存
+            saveTasks(); // 追加時に自動保存
             input.value = '';
             renderCalendar();
           }
