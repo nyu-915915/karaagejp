@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notion Style Task Calendar Widget</title>
+  <title>Notion Sync Task Calendar</title>
   <!-- Google Fonts: Rozha One & Libre Bodoni -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Libre+Bodoni:wght@400;600;700&family=Rozha+One&display=swap" rel="stylesheet">
+  
   <style>
     :root {
       --bg-dark: #191919;
@@ -36,7 +37,6 @@
       align-items: center;
     }
 
-    /* ヘッダーコントロール */
     .header {
       width: 100%;
       max-width: 1440px;
@@ -52,7 +52,6 @@
       gap: 12px;
     }
 
-    /* 白色の矢印ボタン */
     .nav-btn {
       background: none;
       border: none;
@@ -63,7 +62,6 @@
       line-height: 1;
     }
 
-    /* 月表示のバッジ（背景色を #191919 に指定） */
     .month-badge {
       display: inline-block;
       background-color: #191919;
@@ -73,7 +71,6 @@
       font-size: 1.1rem;
     }
 
-    /* 日付範囲・年などの白文字 */
     .year-text {
       font-family: var(--font-num);
       font-size: 1.1rem;
@@ -81,7 +78,6 @@
       margin-left: 6px;
     }
 
-    /* 切替ボタン（W / M） */
     .view-switch {
       display: flex;
       gap: 6px;
@@ -103,7 +99,6 @@
       border-color: var(--accent-blue);
     }
 
-    /* カレンダーグリッド */
     .calendar-grid {
       display: flex;
       flex-wrap: wrap;
@@ -111,7 +106,6 @@
       justify-content: center;
     }
 
-    /* 日付カード（幅200px・直角） */
     .day-card {
       background-color: var(--card-bg);
       width: 200px;
@@ -122,7 +116,6 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
-    /* 日付と曜日のヘッダー（青背景） */
     .day-header {
       background-color: var(--accent-blue);
       color: var(--text-white);
@@ -153,7 +146,6 @@
       background-color: var(--card-bg);
     }
 
-    /* タスク項目 */
     .task-item {
       display: flex;
       align-items: center;
@@ -169,7 +161,6 @@
       overflow: hidden;
     }
 
-    /* チェックボックス（グレー #868C91） */
     .task-checkbox {
       appearance: none;
       width: 14px;
@@ -194,20 +185,17 @@
       left: 1px;
     }
 
-    /* 入力表示されたタスクの文字（黒） */
     .task-text {
       color: var(--text-black);
       word-break: break-all;
       font-family: var(--font-text);
     }
 
-    /* チェック完了時に打ち消し線 */
     .task-checkbox:checked + .task-text {
       text-decoration: line-through;
       color: var(--gray-color);
     }
 
-    /* 削除（✕）ボタン */
     .delete-btn {
       background: none;
       border: none;
@@ -222,7 +210,6 @@
       color: #e53e3e;
     }
 
-    /* 区切り線と入力フォーム */
     .add-task-input {
       width: 100%;
       border: none;
@@ -261,20 +248,45 @@
 
   <div class="calendar-grid" id="calendar-grid"></div>
 
-  <script>
+  <!-- Firebase SDK の読み込み -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyCisNgIn_xOtb3uHKeR0mWe5EoUKxDjRCw",
+    authDomain: "karaagejp-b43aa.firebaseapp.com",
+    projectId: "karaagejp-b43aa",
+    storageBucket: "karaagejp-b43aa.firebasestorage.app",
+    messagingSenderId: "255860834095",
+    appId: "1:255860834095:web:1fef904a2ec16941d66bda",
+    measurementId: "G-WGBGMJPG5V"
+  };
+
+  databaseURL: https://karaagejp-b43aa-default-rtdb.firebaseio.com/
+
+
+    
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const tasksRef = ref(db, 'calendar_tasks');
+
     let currentDate = new Date();
     let currentView = 'week';
-    
-    // ブラウザの保存領域（LocalStorage）からデータを読み込み
     let tasks = {};
-    try {
-      const savedTasks = localStorage.getItem('notion_calendar_tasks');
-      if (savedTasks) {
-        tasks = JSON.parse(savedTasks);
-      }
-    } catch (e) {
-      console.error('LocalStorage load error:', e);
-    }
 
     const monthNamesEn = [
       "January", "February", "March", "April", "May", "June", 
@@ -290,14 +302,17 @@
     const weekViewBtn = document.getElementById('week-view-btn');
     const monthViewBtn = document.getElementById('month-view-btn');
 
-    // LocalStorageへデータを保存する関数
-    function saveTasks() {
-      try {
-        localStorage.setItem('notion_calendar_tasks', JSON.stringify(tasks));
-      } catch (e) {
-        console.error('LocalStorage save error:', e);
-      }
+    // クラウド（Firebase）へデータを保存
+    function saveTasksToCloud() {
+      set(tasksRef, tasks);
     }
+
+    // クラウドからデータ変更を自動検知して画面を更新（リアルタイム同期）
+    onValue(tasksRef, (snapshot) => {
+      const data = snapshot.val();
+      tasks = data ? data : {};
+      renderCalendar();
+    });
 
     function formatDateKey(date) {
       return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
@@ -358,7 +373,6 @@
         const dayCard = document.createElement('div');
         dayCard.className = 'day-card';
 
-        // ヘッダー (月/日(曜日))
         const header = document.createElement('div');
         header.className = 'day-header';
         header.innerHTML = `<span class="date-num">${date.getMonth() + 1}/${date.getDate()}</span> <span class="day-text">(${daysEn[date.getDay()]})</span>`;
@@ -366,7 +380,6 @@
         const taskArea = document.createElement('div');
         taskArea.className = 'task-area';
 
-        // タスク描画
         if (tasks[dateKey]) {
           tasks[dateKey].forEach((task, index) => {
             const item = document.createElement('div');
@@ -381,7 +394,7 @@
             checkbox.checked = task.completed;
             checkbox.addEventListener('change', () => {
               task.completed = checkbox.checked;
-              saveTasks(); // 状態変更時に自動保存
+              saveTasksToCloud();
             });
 
             const text = document.createElement('span');
@@ -391,14 +404,12 @@
             leftBox.appendChild(checkbox);
             leftBox.appendChild(text);
 
-            // 削除（✕）ボタン
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-btn';
             deleteBtn.textContent = '✕';
             deleteBtn.addEventListener('click', () => {
               tasks[dateKey].splice(index, 1);
-              saveTasks(); // 削除時に自動保存
-              renderCalendar();
+              saveTasksToCloud();
             });
 
             item.appendChild(leftBox);
@@ -407,7 +418,6 @@
           });
         }
 
-        // タスク追加入力 (＋task)
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'add-task-input';
@@ -422,9 +432,8 @@
               text: input.value.trim(),
               completed: false
             });
-            saveTasks(); // 追加時に自動保存
+            saveTasksToCloud();
             input.value = '';
-            renderCalendar();
           }
         });
 
