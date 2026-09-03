@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Task Calendar</title>
+  <title>Notion Style Task Calendar Widget</title>
   <!-- Google Fonts: Rozha One & Libre Bodoni -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Bodoni:ital,wght@0,400..700;1,400..700&family=Rozha+One&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Bodoni:wght@400;600;700&family=Rozha+One&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-dark: #191919;
@@ -30,21 +30,20 @@
       background-color: var(--bg-dark);
       color: var(--text-white);
       padding: 20px;
-      min-height: 100vh;
       font-family: var(--font-text);
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    /* ヘッダーエリア */
+    /* ヘッダーコントロール */
     .header {
       width: 100%;
       max-width: 1440px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .nav-controls {
@@ -53,32 +52,38 @@
       gap: 12px;
     }
 
-    /* 矢印ボタン（白文字） */
+    /* 白色の矢印ボタン */
     .nav-btn {
       background: none;
-      border: 1px solid var(--gray-color);
-      color: var(--text-white); /* 矢印は白 */
-      width: 32px;
-      height: 32px;
+      border: none;
+      color: var(--text-white);
+      font-size: 1.2rem;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.9rem;
+      padding: 0 4px;
+      line-height: 1;
     }
 
-    /* 8/30-9/5 等の範囲表示テキスト（白文字） */
-    .date-range-text {
-      color: var(--text-white); /* 文字色：白 */
+    .month-badge {
+      display: inline-block;
+      background-color: var(--accent-blue);
+      color: var(--text-white);
+      padding: 4px 12px;
+      font-family: var(--font-text);
+      font-size: 1.1rem;
+    }
+
+    /* 日付範囲・年などの白文字 */
+    .year-text {
       font-family: var(--font-num);
-      font-size: 1.2rem;
-      margin-left: 8px;
+      font-size: 1.1rem;
+      color: var(--text-white);
+      margin-left: 6px;
     }
 
     /* 切替ボタン（W / M） */
     .view-switch {
       display: flex;
-      gap: 8px;
+      gap: 6px;
     }
 
     .switch-btn {
@@ -86,7 +91,7 @@
       border: 1px solid var(--gray-color);
       padding: 4px 12px;
       cursor: pointer;
-      font-size: 1rem;
+      font-size: 0.9rem;
       color: var(--text-white);
       font-family: var(--font-text);
     }
@@ -101,45 +106,43 @@
     .calendar-grid {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
       justify-content: center;
-      max-width: 1470px;
     }
 
-    /* 日付カード（枠組み幅200px） */
+    /* 日付カード（幅200px・直角） */
     .day-card {
       background-color: var(--card-bg);
-      width: 200px; /* カード幅 200px */
+      width: 200px;
       min-height: 220px;
       display: flex;
       flex-direction: column;
-      border: 1px solid var(--gray-color);
+      border-radius: 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
-    /* 日付・曜日ヘッダー（青背景 #8fa7cc） */
+    /* 日付と曜日のヘッダー（青背景） */
     .day-header {
       background-color: var(--accent-blue);
       color: var(--text-white);
-      padding: 8px 4px;
+      padding: 8px 6px;
       text-align: center;
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 6px;
-      border-bottom: 1px solid var(--gray-color);
+      gap: 4px;
     }
 
     .date-num {
       font-family: var(--font-num);
-      font-size: 1.1rem;
+      font-size: 1rem;
     }
 
     .day-text {
       font-family: var(--font-text);
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
 
-    /* タスクエリア */
     .task-area {
       padding: 10px 8px;
       flex-grow: 1;
@@ -154,7 +157,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
+      gap: 4px;
+      font-size: 0.85rem;
     }
 
     .task-left {
@@ -162,19 +166,18 @@
       align-items: center;
       gap: 6px;
       overflow: hidden;
-      flex-grow: 1;
     }
 
     /* チェックボックス（グレー #868C91） */
     .task-checkbox {
       appearance: none;
-      width: 15px;
-      height: 15px;
+      width: 14px;
+      height: 14px;
       border: 1px solid var(--gray-color);
+      border-radius: 0;
       cursor: pointer;
       position: relative;
       flex-shrink: 0;
-      background-color: var(--card-bg);
     }
 
     .task-checkbox:checked {
@@ -184,27 +187,26 @@
     .task-checkbox:checked::after {
       content: '✓';
       color: #ffffff;
-      font-size: 11px;
+      font-size: 10px;
       position: absolute;
       top: -3px;
       left: 1px;
     }
 
-    /* タスク文字（黒） */
+    /* 入力表示されたタスクの文字（黒） */
     .task-text {
       color: var(--text-black);
-      font-family: var(--font-text);
-      font-size: 0.9rem;
       word-break: break-all;
+      font-family: var(--font-text);
     }
 
-    /* チェック後の打ち消し線 */
+    /* チェック完了時に打ち消し線 */
     .task-checkbox:checked + .task-text {
       text-decoration: line-through;
       color: var(--gray-color);
     }
 
-    /* 削除ボタン（✕） */
+    /* 削除（✕）ボタン */
     .delete-btn {
       background: none;
       border: none;
@@ -219,11 +221,11 @@
       color: #e53e3e;
     }
 
-    /* タスク入力（＋task） */
+    /* 区切り線と入力フォーム */
     .add-task-input {
       width: 100%;
       border: none;
-      border-bottom: 1px solid var(--gray-color);
+      border-bottom: 1px solid var(--gray-color); /* グレーの区切り線 */
       outline: none;
       font-size: 0.85rem;
       padding: 4px 0;
@@ -235,6 +237,7 @@
 
     .add-task-input::placeholder {
       color: var(--gray-color);
+      font-family: var(--font-text);
     }
   </style>
 </head>
@@ -244,7 +247,10 @@
     <div class="nav-controls">
       <button class="nav-btn" id="prev-btn">◀</button>
       <button class="nav-btn" id="next-btn">▶</button>
-      <span class="date-range-text" id="date-range-text">8/30 - 9/5</span>
+      <div>
+        <span class="month-badge" id="month-badge">October</span>
+        <span class="year-text" id="range-text">2026</span>
+      </div>
     </div>
     <div class="view-switch">
       <button class="switch-btn active" id="week-view-btn">W</button>
@@ -257,17 +263,29 @@
   <script>
     let currentDate = new Date();
     let currentView = 'week';
+    
+    // LocalStorageからタスクデータを読み込み（無ければ空）
+    let tasks = JSON.parse(localStorage.getItem('notion_calendar_tasks')) || {};
 
-    // 英語の頭文字 (Sun->S, Mon->M...)
+    const monthNamesEn = [
+      "January", "February", "March", "April", "May", "June", 
+      "July", "August", "September", "October", "November", "December"
+    ];
+    // 英語の頭文字
     const daysEn = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-    const tasks = {};
 
     const gridEl = document.getElementById('calendar-grid');
-    const dateRangeTextEl = document.getElementById('date-range-text');
+    const monthBadgeEl = document.getElementById('month-badge');
+    const rangeTextEl = document.getElementById('range-text');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     const weekViewBtn = document.getElementById('week-view-btn');
     const monthViewBtn = document.getElementById('month-view-btn');
+
+    // LocalStorageへ保存
+    function saveTasks() {
+      localStorage.setItem('notion_calendar_tasks', JSON.stringify(tasks));
+    }
 
     function formatDateKey(date) {
       return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
@@ -306,10 +324,14 @@
     }
 
     function updateHeader(dates) {
-      if (dates.length > 0) {
-        const start = dates[0];
-        const end = dates[dates.length - 1];
-        dateRangeTextEl.textContent = `${start.getMonth() + 1}/${start.getDate()} - ${end.getMonth() + 1}/${end.getDate()}`;
+      monthBadgeEl.textContent = monthNamesEn[currentDate.getMonth()];
+
+      if (currentView === 'week' && dates.length > 0) {
+        const first = dates[0];
+        const last = dates[dates.length - 1];
+        rangeTextEl.textContent = `${first.getMonth() + 1}/${first.getDate()}-${last.getMonth() + 1}/${last.getDate()}`;
+      } else {
+        rangeTextEl.textContent = currentDate.getFullYear();
       }
     }
 
@@ -321,21 +343,18 @@
 
       dates.forEach(date => {
         const dateKey = formatDateKey(date);
-        
-        // カレンダーカード要素
         const dayCard = document.createElement('div');
         dayCard.className = 'day-card';
 
-        // ヘッダー（月/日 (曜日頭文字)）
+        // ヘッダー (月/日(曜日))
         const header = document.createElement('div');
         header.className = 'day-header';
-        header.innerHTML = `<span class="date-num">${date.getMonth() + 1}/${date.getDate()}</span><span class="day-text">(${daysEn[date.getDay()]})</span>`;
+        header.innerHTML = `<span class="date-num">${date.getMonth() + 1}/${date.getDate()}</span> <span class="day-text">(${daysEn[date.getDay()]})</span>`;
 
-        // タスク表示エリア
         const taskArea = document.createElement('div');
         taskArea.className = 'task-area';
 
-        // タスク描画処理
+        // タスク描画
         if (tasks[dateKey]) {
           tasks[dateKey].forEach((task, index) => {
             const item = document.createElement('div');
@@ -350,6 +369,7 @@
             checkbox.checked = task.completed;
             checkbox.addEventListener('change', () => {
               task.completed = checkbox.checked;
+              saveTasks(); // 変更を保存
             });
 
             const text = document.createElement('span');
@@ -359,12 +379,13 @@
             leftBox.appendChild(checkbox);
             leftBox.appendChild(text);
 
-            // 削除ボタン (✕)
+            // 削除（✕）ボタン
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-btn';
             deleteBtn.textContent = '✕';
             deleteBtn.addEventListener('click', () => {
               tasks[dateKey].splice(index, 1);
+              saveTasks(); // 変更を保存
               renderCalendar();
             });
 
@@ -374,7 +395,7 @@
           });
         }
 
-        // 入力フォーム (＋task)
+        // タスク追加入力 (＋task)
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'add-task-input';
@@ -389,6 +410,7 @@
               text: input.value.trim(),
               completed: false
             });
+            saveTasks(); // 保存
             input.value = '';
             renderCalendar();
           }
@@ -401,7 +423,6 @@
       });
     }
 
-    // 矢印ボタンイベント
     prevBtn.addEventListener('click', () => {
       if (currentView === 'week') {
         currentDate.setDate(currentDate.getDate() - 7);
@@ -420,7 +441,6 @@
       renderCalendar();
     });
 
-    // 切替ボタンイベント (W / M)
     weekViewBtn.addEventListener('click', () => {
       currentView = 'week';
       weekViewBtn.classList.add('active');
